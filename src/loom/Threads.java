@@ -4,16 +4,32 @@ import jdk.incubator.concurrent.StructuredTaskScope;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 class Threads {
-    public static void main(String[] args) {
-        virtualThreads();
+    public static void main(String[] args) throws InterruptedException {
+        TimeUnit.SECONDS.sleep(10);
+
+        int numTasks = 1_000_000;
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            for (int i=0; i<numTasks; ++i) {
+                executor.submit(() -> {
+                    try {
+                        TimeUnit.SECONDS.sleep(10);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                });
+            }
+        }
+//        virtualThreads();
 //        platformThreads();
 
-        System.out.println("Summed ints: " + sumInts());
+        System.out.println("Total Memory: " + Runtime.getRuntime().totalMemory());
     }
 
     private static void virtualThreads() {
